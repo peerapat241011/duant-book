@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>I’M ทราย THANK YOU.</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script>
+        var product = [{
+    id: 1,
+    img: 'https://bun-books.com/wp-content/uploads/2021/12/im%E0%B8%97%E0%B8%A3%E0%B8%B2%E0%B8%A2.png',
+    name: 'I’M ทราย THANK YOU.',
+    price: 255,
+    description: '<a href="Experience1" class="blg-btn">รายระเอียดสินค้า</a>',
+    type: 'g'
+ }];
+ $(document).ready(() => {
+    var html = '';
+    for (let i = 0; i < product.length; i++) {
+        html += `<div class="blg-item ${product[i].type}">
+        <img src="${product[i].img}" alt="">
+        <h4>${product[i].name}</h4>
+        <p>${numberWithCommas(product[i].price) }บาท</p>
+        ${product[i].description}
+    </div>`;
+    }
+    $("#gt").html(html);
+})
+
+function numberWithCommas(x) {
+    x = x.toString();
+    var pattern = /(-?\d+)(\d{3})/;
+    while (pattern.test(x))
+        x = x.replace(pattern, "$1,$2");
+    return x;
+}
+    var productindex = 0;
+    function openProductDetail(index) {
+        productindex = index;
+        console.log(productindex)
+        $("#modalDesc").css('display', 'flex')
+        $("#mdd-img").attr('src', product[index].img);
+        $("#mdd-name").text(product[index].name)
+        $("#mdd-price").text(numberWithCommas(product[index].price) + 'บาท')
+        $("#mdd-desc").text(product[index].description)
+    }
+    function closeMode() {
+        $(".modal").css('display','none')
+    }
+    function buymode(){
+        swal.fire({
+            icon: 'success',
+            title: 'ซื้อสินค้า' + product[productindex].name + 'สำเร็จ'
+        })
+    }
+    var cart = [];
+    function addtocart() {
+        var pass = true;
+
+        for (let i = 0; i < cart.length; i++ ) {
+            if(productindex == cart[i].index) {
+               console.log('เลือกสินค้านี้มาก่อนเเล้ว')
+               cart[i].count++;
+               pass = false;
+            }
+        }
+
+        if(pass) {
+            var obj = {
+                index: productindex,
+                id: product[productindex].id,
+                name: product[productindex].name,
+                price: product[productindex].price,
+                img: product[productindex].img,
+                count: 1
+            };
+            //console.log(obj)
+            cart.push(obj)
+        }
+        console.log(cart)
+
+        swal.fire({
+            icon: 'success',
+            title: 'Add' + product[productindex].name + ' to cart!'
+        })
+        $("#cartc").css('display','flex').text(cart.length)
+    }
+    function opcart(){
+        $('#modalCart').css('display','flex')
+        rendercart();
+    }
+    
+    function rendercart(){
+        if(cart.length > 0){
+            var html = '';
+            for (let i = 0; i < cart.length; i++) {
+                html += `<div class="cartlist-items">
+                    <div class="cartlist-left">
+                        <img src="${cart[i].img}" alt="">
+                        <div class="cartlist-detail">
+                            <p id="mdd-name" style="font-size: 1.5vw;">${cart[i].name}</p>
+                            <p id="mdd-price" style="font-size: 1.2vw;">${numberWithCommas(cart[i].price * cart[i].count) }</p>
+                        </div>
+                </div>
+                <div class="cartlist-right">
+                    <p onclick="deinits ('-', ${i})" class="btnc">-</p>
+                    <p id="countits${i}" style="margin: 0 20px;">${cart[i].count}</p>
+                    <p onclick="deinits ('+', ${i})" class="btnc">+</p>
+                </div>
+            </div>`;
+            }
+            $("#mycart").html(html)
+        }
+        else {
+            $("#mycart").html(`<p>ไม่พบรายการของสินค้า</p>`)
+        }
+    }
+
+    function deinits(action,index){
+        if(action == '-') {
+            if(cart[index].count > 0) {
+                cart[index].count--;
+                $("#countits"+index).text(cart[index].count)
+
+                if(cart[index].count <= 0){
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'ต้องการลบสินค้ารายการนี้ใช่หรือไม่?',
+                        showConfirmButton: true,
+                        showCancelButton: true,
+                        confirmButtonText: 'ลบ',
+                        cancelButtonText: 'ยกเลิก'
+                    }).then((res) => {
+                        if(res.isConfirmed){
+                            cart.splice(index, 1)
+                            console.log(cart)
+                            rendercart();
+                            $("#cartc").css('display','flex').text(cart.length)
+
+                            if(cart.length <= 0) {
+                                $("#cartc").css('display','none')
+                            }
+                        }
+                        else{
+                            cart[index].count++;
+                            $("#countits"+index).text(cart[index].count)
+                        }
+                    })
+                }
+            }
+        }
+        else if(action == '+') {
+            cart[index].count++;
+            $("#countits"+index).text(cart[index].count)
+        }
+    }
+    </script>
+</head>
+<body>
+    <nav>
+        <div class="top">
+            <div class="toptop">
+            <div class="logo">
+               <a href="index.html" class="Home">
+               <img src="photo/book.jpg">
+               </a>
+           
+           <ul class="topmenu">
+               <li><a href="index.html">HOME</a></li>
+               <li><a href="about.html">ABOUT</a></li>
+               <li><a href="contact.html">CONTACT</a></li>
+</div>
+</ul>
+                    <div class="nav-profile">
+                        <p class="nav-profile-name">Duant Book</p>
+                        <div onclick="opcart()" style="cursor: pointer;" class="nav-profile-cart">
+                            <i class="fas fa-cart-shopping"></i>
+                            <div id="cartc" class="cartc" style="display: none;">
+                                0
+                            </div> 
+                        </div>
+                    </div>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="Book">
+
+        <img src="https://bun-books.com/wp-content/uploads/2021/12/im%E0%B8%97%E0%B8%A3%E0%B8%B2%E0%B8%A2.png">
+        <h1>I’M ทราย THANK YOU.</h1>
+        <br>
+        <p>19 บทความที่รวบรวมและเรียบเรียงมาจาก คำถาม</p>
+        <p>จากทางบ้านที่ถูกส่งเข้ามาถึง ทราย เจริญปุระ ไม่</p>
+        <p>ว่าจะเป็นคำถามเกี่ยวกับโรคซึมเศร้า เช่น ‘อยากพาคน</p>
+        <p>ใกล้ตัวไปพบจิตแพทย์ จะทำยังไงดี’ หรือคำถามเกี่ยว</p>
+        <p>กับความสัมพันธ์ในครอบครัว อย่าง ‘ขอบเขตของความ</p>
+        <p>กตัญญูอยู่ตรงไหน’ หรือ ‘เป็น LGBT จะเปิดตัวกับ</p>
+        <p>ครอบครัวอย่างไรดี’ ถูกหยิบขึ้นมาตอบในรายการพอด</p>
+        <p>แคสต์ I’m ทราย Thank You—รายการตอบคำถามชีวิต</p>
+        <p>สไตล์ทราย เจริญปุระ ที่ได้รับความนิยมมาตลอดระยะ</p>
+        <p>เวลาเกือบสองปี</p>
+        <br>
+        <div class="shop">
+            <a href="#" onclick="addtocart()" class="blg-btn">เพิ่มลงตะกล้า</a>
+        </div>
+    </div>
+    <div id="modalCart" class="modal" style="display: none;">
+        <div onclick="closeMode()" class="modal-bg"></div>
+        <div class="modal-page">
+            <h2>ตะกล้าสินค้า</h2>
+            <br>
+            <div id="mycart" class="cartlist">
+
+                <div class="cartlist-items">
+                    <div class="cartlist-left">
+                        <img src="https://bun-books.com/wp-content/uploads/2021/12/im%E0%B8%97%E0%B8%A3%E0%B8%B2%E0%B8%A2.png" alt="">
+                        <div class="cartlist-detail">
+                            <p id="mdd-name" style="font-size: 1.5vw;">Product name</p>
+                            <p id="mdd-price" style="font-size: 1.2vw;">5500 บาท</p>
+                        </div>
+                </div>
+                <div class="cartlist-right">
+                    <p class="btnc">-</p>
+                    <p style="margin: 0 20px;">1</p>
+                    <p class="btnc">+</p>
+                </div>
+            </div>
+        </div>
+        <div class="btn-control">
+            <button onclick="closeMode()" class="btn">
+                ยกเลิก
+            </button>
+            <button onclick="buymode()" class="btn btn-buy">
+                สั่งสินค้า
+            </button>
+        </div>
+    </div>
+    </div>
+    <br></br>
+</body>
+
+</html>
